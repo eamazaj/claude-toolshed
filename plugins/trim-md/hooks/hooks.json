@@ -1,0 +1,17 @@
+{
+  "description": "Auto-format markdown files on Write/Edit",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool-trim-md.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
