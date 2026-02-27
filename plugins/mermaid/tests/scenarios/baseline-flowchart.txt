@@ -1,0 +1,1 @@
+Create a Mermaid flowchart diagram showing a user login flow with OAuth (Google). Include: user visits page, clicks login, redirected to Google, authenticates, returns with token, session created. Save the diagram to a file.
