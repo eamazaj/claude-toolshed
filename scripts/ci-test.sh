@@ -21,18 +21,8 @@ if [[ -f "$ROOT/plugins/trim-md/tests/test-trim-md.sh" ]]; then
   ((ran++)) || true
 fi
 
-# mermaid scenario tests
-if [[ -f "$ROOT/plugins/mermaid/tests/run-scenario.sh" ]]; then
-  echo ""
-  echo "--- mermaid scenarios ---"
-  if bash "$ROOT/plugins/mermaid/tests/run-scenario.sh"; then
-    echo "mermaid: PASS"
-  else
-    echo "mermaid: FAIL"
-    ((errors++)) || true
-  fi
-  ((ran++)) || true
-fi
+# mermaid scenario tests (requires claude CLI + API — skip in CI, run manually)
+# Usage: bash plugins/mermaid/tests/run-scenario.sh red scenarios/baseline-flowchart.txt
 
 echo ""
 if ((errors > 0)); then
