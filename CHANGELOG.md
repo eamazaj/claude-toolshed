@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.3.0 (2026-02-28)
+
+- **dev-setup** v1.1.0 — [add automated changelog generation for plugins and marketplace](plugins/dev-setup/CHANGELOG.md#110-2026-02-28)
+- **merge-checks** v1.2.0 — [add automated changelog generation for plugins and marketplace](plugins/merge-checks/CHANGELOG.md#120-2026-02-28)
+- **mermaid** v1.1.0 — [add automated changelog generation for plugins and marketplace](plugins/mermaid/CHANGELOG.md#110-2026-02-28)
+- **plugin-updater** v1.2.0 — [add automated changelog generation for plugins and marketplace](plugins/plugin-updater/CHANGELOG.md#120-2026-02-28)
+- **trim-md** v1.1.0 — [add automated changelog generation for plugins and marketplace](plugins/trim-md/CHANGELOG.md#110-2026-02-28)
+
+
 ## v1.2.0 (2026-02-28)
 
 - **plugin-updater** v1.1.0 — [add auto-update functionality for third-party marketplace plugins](plugins/plugin-updater/CHANGELOG.md#110-2026-02-28)
