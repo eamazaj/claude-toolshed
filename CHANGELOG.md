@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.2 (2026-03-09)
+
+- **merge-checks** v1.2.1 — [skip detect-mode.sh for self-contained scope flags](plugins/merge-checks/CHANGELOG.md#121-2026-03-09)
+
+
 ## v1.3.1 (2026-03-09)
 
 - **mermaid** v1.1.1 — [add parser-gap guards for stateDiagram-v2 and sequenceDiagram](plugins/mermaid/CHANGELOG.md#111-2026-03-09)
