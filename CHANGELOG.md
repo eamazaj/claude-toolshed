@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.1 (2026-03-09)
+
+- **mermaid** v1.1.1 — [add parser-gap guards for stateDiagram-v2 and sequenceDiagram](plugins/mermaid/CHANGELOG.md#111-2026-03-09)
+
+
 ## v1.3.0 (2026-02-28)
 
 - **dev-setup** v1.1.0 — [add automated changelog generation for plugins and marketplace](plugins/dev-setup/CHANGELOG.md#110-2026-02-28)

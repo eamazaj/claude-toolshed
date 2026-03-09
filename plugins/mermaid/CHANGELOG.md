@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 (2026-03-09)
+
+### Other
+
+- add parser-gap guards for stateDiagram-v2 and sequenceDiagram (ea344e8)
+
+
 ## 1.1.0 (2026-02-28)
 
 ### Features
