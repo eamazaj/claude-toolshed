@@ -199,17 +199,22 @@ Generate, validate, render, and manage [D2](https://d2lang.com) diagrams from na
 
 **Self-contained diagrams:** every generated `.d2` file embeds a `vars { d2-config }` block with theme and layout settings — renders correctly with just `d2 file.d2` without extra flags.
 
-**8 themes:**
+**11 themes:**
 
 <table>
 <tr>
 <td align="center"><a href="docs/assets/d2-theme-neutral.svg"><img src="docs/assets/d2-theme-neutral.svg" width="220" alt="neutral"></a><br><sub>neutral (0)</sub></td>
-<td align="center"><a href="docs/assets/d2-theme-neutral-dark.svg"><img src="docs/assets/d2-theme-neutral-dark.svg" width="220" alt="neutral-dark"></a><br><sub>neutral-dark (1)</sub></td>
 <td align="center"><a href="docs/assets/d2-theme-terrastruct.svg"><img src="docs/assets/d2-theme-terrastruct.svg" width="220" alt="terrastruct"></a><br><sub>terrastruct (3)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-cool-classics.svg"><img src="docs/assets/d2-theme-cool-classics.svg" width="220" alt="cool-classics"></a><br><sub>cool-classics (4)</sub></td>
 </tr>
 <tr>
-<td align="center"><a href="docs/assets/d2-theme-cool-classics.svg"><img src="docs/assets/d2-theme-cool-classics.svg" width="220" alt="cool-classics"></a><br><sub>cool-classics (4)</sub></td>
 <td align="center"><a href="docs/assets/d2-theme-mixed-berry-blue.svg"><img src="docs/assets/d2-theme-mixed-berry-blue.svg" width="220" alt="mixed-berry-blue"></a><br><sub>mixed-berry-blue (5)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-colorblind-clear.svg"><img src="docs/assets/d2-theme-colorblind-clear.svg" width="220" alt="colorblind-clear"></a><br><sub>colorblind-clear (8)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-vanilla-nitro-cola.svg"><img src="docs/assets/d2-theme-vanilla-nitro-cola.svg" width="220" alt="vanilla-nitro-cola"></a><br><sub>vanilla-nitro-cola (100)</sub></td>
+</tr>
+<tr>
+<td align="center"><a href="docs/assets/d2-theme-orange-creamsicle.svg"><img src="docs/assets/d2-theme-orange-creamsicle.svg" width="220" alt="orange-creamsicle"></a><br><sub>orange-creamsicle (101)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-neutral-dark.svg"><img src="docs/assets/d2-theme-neutral-dark.svg" width="220" alt="neutral-dark"></a><br><sub>neutral-dark (1)</sub></td>
 <td align="center"><a href="docs/assets/d2-theme-dark-mauve.svg"><img src="docs/assets/d2-theme-dark-mauve.svg" width="220" alt="dark-mauve"></a><br><sub>dark-mauve (200)</sub></td>
 </tr>
 <tr>
