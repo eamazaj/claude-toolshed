@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.1 (2026-03-10)
+
+- **d2** v1.1.1 — [update common mistakes and styling guide with hex color quoting rules and arrowhead customization](plugins/d2/CHANGELOG.md#111-2026-03-10)
+
+
 ## v1.4.0 (2026-03-10)
 
 - **d2** v1.1.0 — [add D2 diagram drawing skills v1.0.0](plugins/d2/CHANGELOG.md#110-2026-03-10)

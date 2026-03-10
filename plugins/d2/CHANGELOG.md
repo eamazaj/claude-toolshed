@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 (2026-03-10)
+
+### Other
+
+- update common mistakes and styling guide with hex color quoting rules and arrowhead customization (dfae836)
+- enhance cardinality annotations with crow's foot notation examples (cef095a)
+
+
 ## 1.1.0 (2026-03-10)
 
 ### Features
