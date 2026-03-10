@@ -222,27 +222,41 @@ Client -> Server: "POST /login {email, pass}"
 
 ```
 # Mermaid
-Note over A,B: Some note
+Note over A: Some note
+Note over A,B: Shared note
 
-# D2 (self-loop as note approximation)
-A -> A: Some note
+# D2 — use dot-notation on the actor, NO arrow needed
+A."Some note"
 ```
 
-**Alt / opt / loop blocks:**
+Notes spanning two actors can only be attached to one in D2 — attach to the more relevant actor.
+
+**Alt / opt / loop blocks → D2 Groups:**
+
+Mermaid's `alt/else/opt/loop` blocks map to D2 named groups. **Actors used inside groups must be pre-declared at the top level:**
 
 ```
 # Mermaid
-alt Condition
-  A->>B: success
-else error
-  A->>B: failure
-end
+sequenceDiagram
+  participant A
+  participant B
+  alt valid credentials
+    A->>B: success
+  else invalid
+    A->>B: failure
+  end
 
-# D2 (containers approximate grouping)
-alt condition: {
+# D2
+shape: sequence_diagram
+
+# Pre-declare actors used in groups
+A
+B
+
+valid credentials: {
   A -> B: success
 }
-else error: {
+invalid: {
   A -> B: failure
 }
 ```
