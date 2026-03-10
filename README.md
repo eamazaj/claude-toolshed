@@ -9,6 +9,7 @@ A plugin marketplace for Claude Code — install pre-packaged skills directly in
 - [Install](#install)
 - [Plugins](#plugins)
   - [mermaid](#mermaid)
+  - [d2](#d2)
   - [merge-checks](#merge-checks)
   - [dev-setup](#dev-setup)
   - [trim-md](#trim-md)
@@ -22,6 +23,7 @@ Add the marketplace, then install any plugin:
 /plugin marketplace add diegomarino/claude-toolshed
 
 /plugin install mermaid@claude-toolshed
+/plugin install d2@claude-toolshed
 /plugin install merge-checks@claude-toolshed
 /plugin install dev-setup@claude-toolshed
 /plugin install trim-md@claude-toolshed
@@ -34,6 +36,7 @@ Add the marketplace, then install any plugin:
 | Plugin | Description |
 | --- | --- |
 | [mermaid](#mermaid) | Generate, validate, render Mermaid diagrams from text or code (powered by [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid)) |
+| [d2](#d2) | Generate, validate, render D2 diagrams from text or code — no Node.js required |
 | [merge-checks](#merge-checks) | Audit code changes across 13 quality dimensions |
 | [dev-setup](#dev-setup) | Generate dev server lifecycle scripts with pool-based port isolation (20000-29999) |
 | [trim-md](#trim-md) | Trim and optimize markdown files for LLM agent consumption |
@@ -146,6 +149,79 @@ Generate, validate, render, and manage Mermaid diagrams from natural language or
 
 - Rendering engine: [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) (MIT License)
 - Documentation base imported or adapted from [SpillwaveSolutions/design-doc-mermaid](https://github.com/SpillwaveSolutions/design-doc-mermaid) (MIT License)
+
+---
+
+### d2
+
+Generate, validate, render, and manage [D2](https://d2lang.com) diagrams from natural language descriptions or codebase analysis. Uses the `d2` CLI binary directly — no Node.js or npm required.
+
+| Command | What it does |
+| --- | --- |
+| `/d2-diagram` | Describe what you want — auto-detects the right diagram type |
+| `/d2-convert` | Convert a Mermaid diagram to D2 format |
+| `/d2-architect` | Point at a codebase — generates a suite of relevant D2 diagrams |
+| `/d2-validate` | Check D2 syntax in `.d2` files or directories |
+| `/d2-render` | Render `.d2` files to SVG or PNG |
+| `/d2-config` | Set theme, layout engine, output settings, and check dependencies |
+
+```text
+/d2-diagram "user login with JWT and refresh token"
+/d2-architect src/
+/d2-convert "sequenceDiagram\n  A->>B: hello"
+```
+
+**4 diagram types:**
+
+<details>
+<summary>Architecture / Flow</summary>
+<br>
+<p align="center"><img src="docs/assets/d2-showcase-architecture.svg" alt="Architecture diagram"></p>
+</details>
+
+<details>
+<summary>Sequence</summary>
+<br>
+<p align="center"><img src="docs/assets/d2-showcase-sequence.svg" alt="Sequence diagram"></p>
+</details>
+
+<details>
+<summary>Entity-Relationship</summary>
+<br>
+<p align="center"><img src="docs/assets/d2-showcase-er.svg" alt="ER diagram"></p>
+</details>
+
+<details>
+<summary>Class</summary>
+<br>
+<p align="center"><img src="docs/assets/d2-showcase-class.svg" alt="Class diagram"></p>
+</details>
+
+**Self-contained diagrams:** every generated `.d2` file embeds a `vars { d2-config }` block with theme and layout settings — renders correctly with just `d2 file.d2` without extra flags.
+
+**8 themes:**
+
+<table>
+<tr>
+<td align="center"><a href="docs/assets/d2-theme-neutral.svg"><img src="docs/assets/d2-theme-neutral.svg" width="220" alt="neutral"></a><br><sub>neutral (0)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-neutral-dark.svg"><img src="docs/assets/d2-theme-neutral-dark.svg" width="220" alt="neutral-dark"></a><br><sub>neutral-dark (1)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-terrastruct.svg"><img src="docs/assets/d2-theme-terrastruct.svg" width="220" alt="terrastruct"></a><br><sub>terrastruct (3)</sub></td>
+</tr>
+<tr>
+<td align="center"><a href="docs/assets/d2-theme-cool-classics.svg"><img src="docs/assets/d2-theme-cool-classics.svg" width="220" alt="cool-classics"></a><br><sub>cool-classics (4)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-mixed-berry-blue.svg"><img src="docs/assets/d2-theme-mixed-berry-blue.svg" width="220" alt="mixed-berry-blue"></a><br><sub>mixed-berry-blue (5)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-dark-mauve.svg"><img src="docs/assets/d2-theme-dark-mauve.svg" width="220" alt="dark-mauve"></a><br><sub>dark-mauve (200)</sub></td>
+</tr>
+<tr>
+<td align="center"><a href="docs/assets/d2-theme-terminal.svg"><img src="docs/assets/d2-theme-terminal.svg" width="220" alt="terminal"></a><br><sub>terminal (300)</sub></td>
+<td align="center"><a href="docs/assets/d2-theme-terminal-grayscale.svg"><img src="docs/assets/d2-theme-terminal-grayscale.svg" width="220" alt="terminal-grayscale"></a><br><sub>terminal-grayscale (301)</sub></td>
+<td></td>
+</tr>
+</table>
+
+> **[Full documentation →](plugins/d2/README.md)** — diagram types, configuration, themes, layout engines, troubleshooting
+
+**Requires:** `d2` CLI — `brew install d2` (macOS) or `go install oss.terrastruct.com/d2@latest`
 
 ---
 

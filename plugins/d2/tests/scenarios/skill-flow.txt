@@ -1,0 +1,3 @@
+Create a diagram showing a microservices architecture with an API gateway, three backend services (user service, order service, payment service), a PostgreSQL database, and a Redis cache. The API gateway receives requests from the internet and routes them to the appropriate service.
+
+Save the diagram to a file in a ./diagrams directory. Use D2 format (.d2 extension).

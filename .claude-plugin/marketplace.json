@@ -33,6 +33,11 @@
       "name": "plugin-updater",
       "source": "./plugins/plugin-updater",
       "description": "Auto-update third-party marketplace plugins on session start"
+    },
+    {
+      "name": "d2",
+      "source": "./plugins/d2",
+      "description": "Generate, validate, render D2 diagrams from text or code"
     }
   ]
 }

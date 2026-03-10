@@ -1,0 +1,25 @@
+Convert this Mermaid diagram to D2 format:
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant G as API Gateway
+  participant A as Auth Service
+  participant D as Database
+
+  C->>G: POST /auth/login {email, password}
+  G->>A: forward credentials
+  A->>D: SELECT * FROM users WHERE email=?
+  D-->>A: user row
+  A->>A: bcrypt.compare(password, hash)
+  alt valid credentials
+    A->>A: jwt.sign(payload, secret)
+    A-->>G: 200 {token}
+    G-->>C: 200 {token}
+  else invalid credentials
+    A-->>G: 401 Unauthorized
+    G-->>C: 401 Unauthorized
+  end
+```
+
+Save the output to ./diagrams with a proper filename. Use D2 format (.d2 extension). Validate the result with d2 validate.
