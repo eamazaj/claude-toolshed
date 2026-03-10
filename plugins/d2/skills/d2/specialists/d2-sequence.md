@@ -87,13 +87,84 @@ Generate a D2 sequence diagram for API calls, service interactions, and message 
    d2 {output_file} {output_directory}/{basename}.svg
    ```
 
+## Advanced Sequence Features
+
+### Notes
+
+Attach a note to an actor using dot notation — no arrow needed:
+
+```d2
+shape: sequence_diagram
+alice -> bob: request
+bob."This is a note attached to bob"
+```
+
+Notes can also go inside groups (see below).
+
+### Groups (Fragments)
+
+Label a subset of messages with a named group. **Actors used inside a group must be pre-declared at the top level:**
+
+```d2
+shape: sequence_diagram
+
+# Pre-declare actors when using groups
+client
+server
+db
+
+happy path: {
+  client -> server: "POST /login"
+  server -> db: lookup user
+  db -> server: user record
+  server -> client: "200 JWT"
+}
+
+error path: {
+  client -> server: "POST /login"
+  server -> client: "401 Unauthorized"
+}
+```
+
+Groups render as named frames around their messages — equivalent to Mermaid's `alt/opt/loop`.
+
+### Spans (Activation Boxes)
+
+Show the duration of an actor's activity using named spans via dot notation:
+
+```d2
+shape: sequence_diagram
+# alice.t1 creates a span named t1 on alice's lifeline
+alice.t1 -> bob
+alice.t1 <- bob
+```
+
+Nested spans create nested activation boxes:
+
+```d2
+shape: sequence_diagram
+alice.outer -> bob
+alice.outer.inner -> bob
+alice.outer.inner <- bob
+alice.outer <- bob
+```
+
+### Self-messages
+
+```d2
+shape: sequence_diagram
+service -> service: "internal processing"
+```
+
 ## Critical Rules
 
 - `shape: sequence_diagram` is REQUIRED — without it, D2 renders a flow graph instead
 - Actors are defined implicitly on first use — no separate actor declaration needed
+- **Exception:** actors used inside groups MUST be pre-declared at the top level
 - Quote all labels containing `:` or other special characters
 - Use `->` for messages (D2 syntax), never `-->`
 - Keep actor names consistent across all messages (case-sensitive)
+- Notes use `actor."text"` syntax — NOT a self-loop `actor -> actor: text`
 
 ## Output
 

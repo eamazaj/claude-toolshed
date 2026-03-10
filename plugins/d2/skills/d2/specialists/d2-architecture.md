@@ -108,6 +108,69 @@ Generate a D2 diagram for system architecture, microservices, infrastructure, CI
    source -> build -> test -> deploy -> monitor
    ```
 
+   **Grid layout template** (Kubernetes, pod grids, deployment matrices):
+
+   ```d2
+   vars: {
+     d2-config: {
+       theme-id: {theme_id}
+       layout-engine: elk
+     }
+   }
+
+   cluster: {
+     grid-columns: 3
+     pod1: API Pod
+     pod2: API Pod
+     pod3: API Pod
+     pod4: Worker Pod
+     pod5: Worker Pod
+     pod6: Worker Pod
+   }
+
+   lb -> cluster.pod1
+   lb -> cluster.pod2
+   lb -> cluster.pod3
+   ```
+
+   **Reusable styles with `classes`** (when the diagram has many nodes of the same type):
+
+   ```d2
+   classes: {
+     service: {
+       shape: rectangle
+       style: {
+         border-radius: 4
+         shadow: true
+       }
+     }
+     database: {
+       shape: cylinder
+       style.fill: "#e8f4f8"
+     }
+     external: {
+       style: {
+         stroke-dash: 4
+         fill: "#f5f5f5"
+       }
+     }
+   }
+
+   stripe: Stripe API {
+     class: external
+   }
+   users_db: Users DB {
+     class: database
+   }
+   auth: Auth Service {
+     class: service
+   }
+   # Compose multiple classes
+   legacy: Legacy System {
+     class: [external; service]
+   }
+   ```
+
 7. **Validate**:
 
    ```bash
