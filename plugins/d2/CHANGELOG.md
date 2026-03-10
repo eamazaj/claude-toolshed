@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.2 (2026-03-10)
+
+### Other
+
+- add advanced features for sequence diagrams and architecture templates (c05e1ed)
+- update D2 conversion notes and group mapping for sequence diagrams (189ce8b)
+- add modular classes and connection styling examples to styling guide (d052cf2)
+
+
 ## 1.1.1 (2026-03-10)
 
 ### Other

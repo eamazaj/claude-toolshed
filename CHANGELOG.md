@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.2 (2026-03-10)
+
+- **d2** v1.1.2 — [add advanced features for sequence diagrams and architecture templates](plugins/d2/CHANGELOG.md#112-2026-03-10)
+
+
 ## v1.4.1 (2026-03-10)
 
 - **d2** v1.1.1 — [update common mistakes and styling guide with hex color quoting rules and arrowhead customization](plugins/d2/CHANGELOG.md#111-2026-03-10)
