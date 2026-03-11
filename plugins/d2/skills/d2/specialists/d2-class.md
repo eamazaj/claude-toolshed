@@ -1,160 +1,102 @@
 ---
-description: Generate class and OOP design diagrams
-argument-hint: [description]
+description: Compositional patterns for class and OOP design diagrams
 allowed-tools: Read, Bash, Write
 ---
 
 # D2 Class Specialist
 
-User request: "$ARGUMENTS"
+## Default Configuration
 
-## Task
+- **Layout engine:** `dagre` for simple hierarchies, `elk` for complex ones
+- **Direction:** `down` (inheritance flows top to bottom)
 
-Generate a D2 class diagram for OOP design, class hierarchies, interfaces, and data models.
+## Node Placement
 
-## Process
+| Position | Node type |
+|---|---|
+| Top | Interfaces, abstract classes |
+| Middle | Concrete implementations |
+| Bottom | Value objects, enums, utilities |
 
-1. **Resolve Plugin Path**:
+## Grouping Defaults
 
-   ```bash
-   PLUGIN_DIR=$(find "$HOME/.claude/plugins/cache" -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   [ -z "$PLUGIN_DIR" ] && PLUGIN_DIR=$(find "$HOME" -maxdepth 8 -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   ```
+- One package or module per diagram
+- Group by namespace if multiple packages must appear
 
-2. **Ensure D2 is installed**:
+## D2 Patterns
 
-   ```bash
-   bash "$PLUGIN_DIR/scripts/ensure-deps.sh"
-   ```
-
-3. **Read Config**: If `.claude/d2.json` exists, read `theme_id`, `layout`, `sketch`, `output_directory`, `auto_validate`, `auto_render`. Fall back to defaults (theme_id: 0, layout: dagre, output: ./diagrams).
-
-4. **Identify Classes**: Extract class names, attributes (with visibility and types), methods (with visibility, params, return types), interfaces, abstract classes, relationships (inheritance, composition, aggregation, association, dependency).
-
-5. **Determine Relationships**:
-
-   | Relationship | D2 Arrow | Meaning |
-   |---|---|---|
-   | Inheritance | `-> {style.stroke-dash: 0}` with label `extends` | Subclass extends superclass |
-   | Implementation | `-> {style.stroke-dash: 4}` with label `implements` | Class implements interface |
-   | Composition | `->` with label `has` | Strong ownership, child can't exist without parent |
-   | Aggregation | `->` with label `contains` | Weak ownership |
-   | Association | `->` | Uses/references |
-   | Dependency | `->` with `{style.stroke-dash: 4}` | Depends on |
-
-6. **Generate Diagram**:
-
-   - Start with `vars` block built from config
-   - Represent classes as labeled containers with attributes and methods listed
-   - Use visibility prefixes: `+` public, `-` private, `#` protected
-   - Mark interfaces and abstract classes with label suffixes
-   - Quote class names containing spaces
-   - Group by package/module using containers
-
-   **Template:**
-
-   ```d2
-   vars: {
-     d2-config: {
-       theme-id: {theme_id}
-       layout-engine: dagre
-     }
-   }
-
-   "<<interface>>\nPaymentProcessor": {
-     label: "<<interface>>\nPaymentProcessor"
-     +process(amount: Money): Result
-     +refund(txId: string): Result
-     +getStatus(txId: string): Status
-   }
-
-   StripeProcessor: {
-     label: StripeProcessor
-     -apiKey: string
-     -client: StripeClient
-     +process(amount: Money): Result
-     +refund(txId: string): Result
-     +getStatus(txId: string): Status
-     -buildRequest(amount: Money): StripeRequest
-   }
-
-   PaypalProcessor: {
-     label: PaypalProcessor
-     -clientId: string
-     -secret: string
-     +process(amount: Money): Result
-     +refund(txId: string): Result
-     +getStatus(txId: string): Status
-   }
-
-   Money: {
-     label: Money
-     +amount: decimal
-     +currency: string
-     +add(other: Money): Money
-     +toString(): string
-   }
-
-   # Relationships
-   StripeProcessor -> "<<interface>>\nPaymentProcessor": implements {style.stroke-dash: 4}
-   PaypalProcessor -> "<<interface>>\nPaymentProcessor": implements {style.stroke-dash: 4}
-   StripeProcessor -> Money: uses
-   ```
-
-7. **Validate**:
-
-   ```bash
-   d2 validate {output_file}
-   ```
-
-   Fix any errors using `$PLUGIN_DIR/references/guides/troubleshooting.md`.
-
-8. **Save**:
-
-   ```bash
-   mkdir -p {output_directory}
-   ```
-
-   Filename: `class-{short-description}-{YYYYMMDD}.d2`
-
-9. **Render** (if `auto_render=true` or user asks):
-
-   Render with both layout engines for comparison:
-
-   ```bash
-   d2 --layout dagre {output_file} {output_directory}/{basename}-dagre.svg
-   d2 --layout elk {output_file} {output_directory}/{basename}-elk.svg
-   ```
-
-   Present both:
-
-   ```
-   Rendered with both layout engines:
-   - {basename}-dagre.svg (faster, simpler layout)
-   - {basename}-elk.svg (better spacing for complex hierarchies)
-   Compare both and pick the one that reads best.
-   ```
-
-## Critical Rules
-
-- D2 does not have a native `classDiagram` type — use labeled containers with attribute lists
-- Quote class names containing special characters (`<`, `>`, spaces): `"<<interface>>\nClassName"`
-- Newlines in labels use `\n`: `"<<abstract>>\nBaseClass"`
-- Relationship labels go after the arrow: `A -> B: extends`
-- Dashed arrows use `{style.stroke-dash: 4}` on the connection
-- Reserved words as class names must be quoted: `"class"`, `"interface"`
-
-## Output
+**Class with attributes and methods:**
 
 ```d2
-{complete diagram}
+user_svc: UserService {
+  -db_client: DBClient
+  -cache: RedisCache
+  +get_user(id: str): User
+  +create_user(data: dict): User
+  -validate(data: dict): bool
+}
 ```
 
-**Saved to:** {filename}
-**Validation:** passed
-**Classes:** {count} | **Relationships:** {count}
+Visibility prefixes: `+` public, `-` private, `#` protected.
 
-## Reference
+**Interface:**
 
-- Troubleshooting: `$PLUGIN_DIR/references/guides/troubleshooting.md`
-- Common mistakes: `$PLUGIN_DIR/references/guides/common-mistakes.md`
+```d2
+payment_iface: "<<interface>>\nPaymentProcessor" {
+  +process(amount: Money): Result
+  +refund(tx_id: str): Result
+}
+```
+
+Use `\n` in labels for stereotypes (`<<interface>>`, `<<abstract>>`).
+
+**Relationships:**
+
+| Relationship | D2 pattern |
+|---|---|
+| Inheritance (extends) | `child -> parent: extends` |
+| Implementation | `impl -> iface: implements {style.stroke-dash: 4}` |
+| Composition (strong) | `parent -> child: has` |
+| Aggregation (weak) | `parent -> child: contains` |
+| Association | `a -> b: uses` |
+| Dependency | `a -> b: depends {style.stroke-dash: 4}` |
+
+**Complete example:**
+
+```d2
+vars: {
+  d2-config: {
+    theme-id: 0
+    layout-engine: dagre
+  }
+}
+
+payment_iface: "<<interface>>\nPaymentProcessor" {
+  +process(amount: Money): Result
+  +refund(tx_id: str): Result
+}
+
+stripe_proc: StripeProcessor {
+  -api_key: str
+  +process(amount: Money): Result
+  +refund(tx_id: str): Result
+}
+
+paypal_proc: PaypalProcessor {
+  -client_id: str
+  +process(amount: Money): Result
+  +refund(tx_id: str): Result
+}
+
+stripe_proc -> payment_iface: implements {style.stroke-dash: 4}
+paypal_proc -> payment_iface: implements {style.stroke-dash: 4}
+```
+
+## Type-Specific Rules
+
+- D2 has no native `classDiagram` — use labeled containers with attribute lists
+- Quote names with special characters: `"<<interface>>\nName"`
+- Newlines in labels use `\n`
+- Relationship labels go after the arrow: `A -> B: extends`
+- Dashed lines use `{style.stroke-dash: 4}`
+- Reserved words as names must be quoted: `"class"`, `"interface"`

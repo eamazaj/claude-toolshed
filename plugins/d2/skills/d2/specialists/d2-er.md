@@ -1,193 +1,101 @@
 ---
-description: Generate entity-relationship and database schema diagrams
-argument-hint: [description]
+description: Compositional patterns for entity-relationship and database schema diagrams
 allowed-tools: Read, Bash, Write
 ---
 
 # D2 ER Specialist
 
-User request: "$ARGUMENTS"
+## Default Configuration
 
-## Task
+- **Layout engine:** `elk` for schemas with >6 tables, `dagre` otherwise
+- **Sketch mode:** always `false` (sql_table is incompatible with sketch)
 
-Generate a D2 entity-relationship diagram for database schemas, SQL tables, and data models.
+## Node Placement
 
-## Process
+| Position | Entity type |
+|---|---|
+| Center | Core domain entities (users, orders, products) |
+| Periphery | Lookup/reference tables (statuses, categories, roles) |
+| Grouped | Junction/join tables near their parent entities |
 
-1. **Resolve Plugin Path**:
+## D2 Patterns
 
-   ```bash
-   PLUGIN_DIR=$(find "$HOME/.claude/plugins/cache" -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   [ -z "$PLUGIN_DIR" ] && PLUGIN_DIR=$(find "$HOME" -maxdepth 8 -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   ```
+**Table definition:**
 
-2. **Ensure D2 is installed**:
+```d2
+users: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  email: varchar(255) {constraint: unique}
+  name: varchar(100)
+  created_at: timestamp
+}
+```
 
-   ```bash
-   bash "$PLUGIN_DIR/scripts/ensure-deps.sh"
-   ```
+**Relationships with crow's foot notation:**
 
-3. **Read Config**: If `.claude/d2.json` exists, read `theme_id`, `layout`, `sketch`, `output_directory`, `auto_validate`, `auto_render`. Fall back to defaults (theme_id: 0, layout: elk, output: ./diagrams).
+```d2
+users.id -> orders.user_id: {
+  source-arrowhead.shape: cf-one-required
+  target-arrowhead.shape: cf-many
+}
+```
 
-   **Note:** Disable sketch mode for ER diagrams — `sql_table` shape is not compatible with sketch rendering.
+**Crow's foot arrowhead values:**
 
-4. **Identify Entities**: Extract tables/entities, fields with data types, primary keys, foreign keys, unique constraints, relationships.
+| Value | Meaning |
+|---|---|
+| `cf-one` | Exactly one (optional) |
+| `cf-one-required` | Exactly one (required) |
+| `cf-many` | Zero or more |
+| `cf-many-required` | One or more |
 
-5. **Generate Diagram**:
-
-   - Start with `vars` block built from config (always `sketch: false` for ER diagrams)
-   - Use D2's `shape: sql_table` for each entity
-   - Include ALL relevant fields with proper data types
-   - Mark constraints using `{constraint: ...}` syntax
-   - Connect related tables using dot notation on primary/foreign key fields
-   - Use crow's foot arrowheads to express cardinality natively:
-
-   ```d2
-   # one-to-many (one user → many orders)
-   users.id -> orders.user_id: {
-     source-arrowhead.shape: cf-one-required
-     target-arrowhead.shape: cf-many
-   }
-
-   # many-to-many (orders → products via order_items)
-   orders.id -> order_items.order_id: {
-     source-arrowhead.shape: cf-one-required
-     target-arrowhead.shape: cf-many
-   }
-   ```
-
-   **Crow's foot arrowhead values:**
-
-   | Value | Meaning |
-   |---|---|
-   | `cf-one` | Exactly one (optional) |
-   | `cf-one-required` | Exactly one (required) |
-   | `cf-many` | Zero or more |
-   | `cf-many-required` | One or more |
-
-   **Constraint syntax:**
-
-   ```d2
-   {constraint: primary_key}      # PK
-   {constraint: foreign_key}      # FK
-   {constraint: unique}           # UNIQUE
-   {constraint: not_null}         # NOT NULL
-   ```
-
-   **Template:**
-
-   ```d2
-   vars: {
-     d2-config: {
-       theme-id: {theme_id}
-       layout-engine: elk
-       sketch: false
-     }
-   }
-
-   users: {
-     shape: sql_table
-     id: bigint {constraint: primary_key}
-     email: varchar(255) {constraint: unique}
-     name: varchar(100)
-     created_at: timestamp
-     updated_at: timestamp
-   }
-
-   products: {
-     shape: sql_table
-     id: bigint {constraint: primary_key}
-     name: varchar(200)
-     price: decimal(10,2)
-     stock: int
-   }
-
-   orders: {
-     shape: sql_table
-     id: bigint {constraint: primary_key}
-     user_id: bigint {constraint: foreign_key}
-     total: decimal(10,2)
-     status: varchar(50)
-     created_at: timestamp
-   }
-
-   order_items: {
-     shape: sql_table
-     id: bigint {constraint: primary_key}
-     order_id: bigint {constraint: foreign_key}
-     product_id: bigint {constraint: foreign_key}
-     quantity: int
-     unit_price: decimal(10,2)
-   }
-
-   # Relationships (foreign key connections)
-   users.id -> orders.user_id
-   orders.id -> order_items.order_id
-   products.id -> order_items.product_id
-   ```
-
-6. **Validate**:
-
-   ```bash
-   d2 validate {output_file}
-   ```
-
-   Fix any errors using `$PLUGIN_DIR/references/guides/troubleshooting.md`.
-
-7. **Save**:
-
-   ```bash
-   mkdir -p {output_directory}
-   ```
-
-   Filename: `er-{short-description}-{YYYYMMDD}.d2`
-
-8. **Render** (if `auto_render=true` or user asks):
-
-   Render with both layout engines for comparison:
-
-   ```bash
-   d2 --layout dagre {output_file} {output_directory}/{basename}-dagre.svg
-   d2 --layout elk {output_file} {output_directory}/{basename}-elk.svg
-   ```
-
-   Present both:
-
-   ```
-   Rendered with both layout engines:
-   - {basename}-dagre.svg (faster, simpler layout)
-   - {basename}-elk.svg (better spacing for many tables)
-   Compare both and pick the one that reads best.
-   ```
-
-## Critical Rules
-
-- `shape: sql_table` is required for each entity — without it, D2 renders boxes instead of tables
-- Always set `sketch: false` in the vars block — sketch mode breaks sql_table rendering
-- Use `{constraint: primary_key}` syntax, NOT SQL keywords (`PRIMARY KEY`, `NOT NULL`)
-- Connect tables via field dot-path: `table.field_name -> other_table.fk_field`
-- Use `elk` layout for schemas with many tables — handles spacing better
-
-## Supported Constraint Values
+**Constraint values:**
 
 | Constraint | Meaning |
 |---|---|
-| `primary_key` | Primary key (PK) |
-| `foreign_key` | Foreign key (FK) |
-| `unique` | Unique constraint |
+| `primary_key` | PK |
+| `foreign_key` | FK |
+| `unique` | Unique |
 | `not_null` | Not nullable |
 
-## Output
+**Complete example:**
 
 ```d2
-{complete diagram}
+vars: {
+  d2-config: {
+    theme-id: 0
+    layout-engine: elk
+    sketch: false
+  }
+}
+
+users: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  email: varchar(255) {constraint: unique}
+  name: varchar(100)
+}
+
+orders: {
+  shape: sql_table
+  id: bigint {constraint: primary_key}
+  user_id: bigint {constraint: foreign_key}
+  total: "decimal(10,2)"
+  status: varchar(50)
+}
+
+users.id -> orders.user_id: {
+  source-arrowhead.shape: cf-one-required
+  target-arrowhead.shape: cf-many
+}
 ```
 
-**Saved to:** {filename}
-**Validation:** passed
-**Tables:** {count} | **Relationships:** {count}
+## Type-Specific Rules
 
-## Reference
-
-- Troubleshooting: `$PLUGIN_DIR/references/guides/troubleshooting.md`
-- Common mistakes: `$PLUGIN_DIR/references/guides/common-mistakes.md`
+- `shape: sql_table` is REQUIRED for each entity
+- Always set `sketch: false` — sketch mode breaks sql_table rendering
+- Use `{constraint: primary_key}` syntax, NOT SQL keywords
+- Connect via field dot-path: `table.field -> other_table.fk_field`
+- Max 10 tables per diagram — split larger schemas by domain
+- Use crow's foot arrowheads for cardinality (no text labels needed)

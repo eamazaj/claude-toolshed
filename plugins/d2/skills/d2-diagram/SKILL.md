@@ -11,122 +11,157 @@ User request: "$ARGUMENTS"
 
 ## Task
 
-Analyze the user's description, select the appropriate diagram type, and generate the diagram.
+Generate a well-composed D2 diagram from the user's description.
 
-## Instructions
+## Step 1: Setup
 
-### Step 1: Resolve Plugin Path
+Resolve plugin path and read config:
 
 ```bash
 PLUGIN_DIR=$(find "$HOME/.claude/plugins/cache" -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-```
-
-If empty, run fallback (for dev/repo usage):
-
-```bash
-PLUGIN_DIR=$(find "$HOME" -maxdepth 8 -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-```
-
-If still empty: stop and report — "Plugin not found. Is it installed?"
-
-### Step 2: Ensure Dependencies
-
-```bash
+[ -z "$PLUGIN_DIR" ] && PLUGIN_DIR=$(find "$HOME" -maxdepth 8 -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
 bash "$PLUGIN_DIR/scripts/ensure-deps.sh"
 ```
 
-If `.claude/d2.json` does **not** exist, display a one-time nudge before continuing:
+Read `.claude/d2.json` if it exists (theme_id, layout, sketch, output_directory, auto_validate, auto_render). If it does not exist, display a one-time nudge:
 
-> First time using the d2 plugin? Run `/d2-config` to pick a theme and output settings. Using defaults for now (theme 0 / Neutral, `./diagrams`).
+> First time using the d2 plugin? Run `/d2-config` to pick a theme. Using defaults for now.
 
-### Step 3: Read Config
+## Step 2: Classify
 
-If `.claude/d2.json` exists, read and apply:
+Determine diagram type from the description:
 
-- `theme_id` (default: 0)
-- `layout` (default: "dagre")
-- `sketch` (default: false)
-- `output_directory` (default: ./diagrams)
-- `auto_validate` (default: true)
-- `auto_render` (default: false)
-
-**Resolve output path:**
-
-- If `output_directory` is `"same"` AND an input file is known: `OUTPUT_DIR=$(dirname {input_file})`
-- If `output_directory` is `"same"` AND no input file: `OUTPUT_DIR=./diagrams`
-- Otherwise: `OUTPUT_DIR={output_directory}`
-
-### Step 4: Analyze User Description
-
-**Analyze the request semantically** — interpret intent regardless of language:
-
-| What the user wants to show | Type |
+| Intent | Type |
 |---|---|
-| API calls, request/response, service-to-service communication, message passing | Sequence |
-| System components, microservices, architecture, infrastructure, deployment, CI/CD pipelines, workflows | Architecture |
-| Database tables, entities, schema design, foreign keys, SQL relationships | ER |
-| Classes, objects, inheritance, OOP design, interfaces, data models | Class |
+| API calls, request/response, message passing | Sequence |
+| System components, microservices, infrastructure, pipelines, workflows | Architecture |
+| Database tables, schema, foreign keys, entities | ER |
+| Class hierarchy, OOP, interfaces, data models | Class |
 
-If the description matches multiple types, present the top 2 options briefly and ask which.
+If ambiguous between 2 types, ask one clarifying question. If clear, proceed.
 
-If the request is ambiguous, ask: "Briefly describe what you want to visualize — API flows, system components, a database schema, or class structures?"
+## Step 3: Structural Plan
 
-### Step 5: Present Recommendation
+**Before writing any D2**, build this plan internally. Apply the policies from `$PLUGIN_DIR/SKILL.md`.
 
+Determine:
+
+- **diagram_type** — from Step 2
+- **abstraction_level** — infer from prompt: context, container, component, or deployment
+- **grouping_criterion** — infer or default: layer, domain, ownership, or environment
+- **direction** — from orientation heuristics (right for flows, down for hierarchies)
+- **layout_engine** — from engine selection table (<8 nodes: dagre, >=8: elk)
+- **nodes** — inventory with id (snake_case), label, kind (actor/service/database/queue/cache/gateway/external)
+- **groups** — with label and children node IDs
+- **edges** — with from, to, and optional label
+- **budget_check** — count total nodes, max group size, nesting depth, max fanout against visual budget limits
+- **split_decision** — pass or split_required
+
+**Visibility rule:** If the budget check passes and there is no ambiguity in level or grouping, proceed directly to Step 4. If split is required OR the abstraction level or grouping is ambiguous, present a summary to the user:
+
+```text
+I'm planning to generate:
+- Type: {type} at {abstraction_level} level
+- Grouping: by {criterion}
+- Direction: {direction}
+- {N} nodes in {M} groups
+- Split: {overview + N detail diagrams | single diagram}
+
+Proceed, or want to adjust?
 ```
-Based on your description "{description}", I recommend a **{type}** diagram because {reason}.
 
-Proceeding with {type}...
-```
+## Step 4: Load Specialist
 
-### Step 6: Load and Execute Specialist
+Read the specialist for the classified type:
 
-Read the specialist file and follow its **Process** exactly. Do not ask the user again — generate the diagram.
+- Sequence: `$PLUGIN_DIR/specialists/d2-sequence.md`
+- Architecture: `$PLUGIN_DIR/specialists/d2-architecture.md`
+- ER: `$PLUGIN_DIR/specialists/d2-er.md`
+- Class: `$PLUGIN_DIR/specialists/d2-class.md`
 
-Type-to-filename mapping:
+Use the specialist's compositional patterns and D2 syntax conventions. The structural plan from Step 3 governs the structure — the specialist provides type-specific syntax.
 
-- Sequence → `$PLUGIN_DIR/specialists/d2-sequence.md`
-- Architecture → `$PLUGIN_DIR/specialists/d2-architecture.md`
-- ER → `$PLUGIN_DIR/specialists/d2-er.md`
-- Class → `$PLUGIN_DIR/specialists/d2-class.md`
+## Step 5: Generate D2
 
-### Step 7: Auto-render (if enabled)
+Write the diagram following:
 
-If `auto_render == true` (or user explicitly asks to render):
+1. **Structural plan** — governs structure (what nodes, what groups, what edges)
+2. **Specialist patterns** — governs D2 syntax (shapes, conventions, type-specific features)
+3. **Global policies** — governs conventions (IDs, labels, direction, engine)
+
+Order in the `.d2` file:
+
+1. `vars` block (theme, engine, sketch from config)
+2. `direction` declaration
+3. `classes` block (if >4 nodes of same type)
+4. Node and group declarations
+5. Connections
+
+**Non-negotiable conventions:**
+
+- **IDs:** snake_case, no emojis, no spaces — `api_gw`, `user_svc`, `orders_db`
+- **Labels:** `api_gw: "API Gateway"` — emojis allowed in labels only
+- **Direction:** MUST appear right after `vars` block — `direction: right` for flows, `direction: down` for hierarchies. If unsure, use `direction: right`. Never omit.
+- Quote labels containing spaces or special characters.
+
+## Step 6: Repair Pass
+
+Before delivering, run the 10-point repair checklist from `$PLUGIN_DIR/SKILL.md`:
+
+1. No level mixing
+2. Consistent grouping criterion
+3. Budget compliance (12 top-level, 7 per group, 3 nesting, 4 fanout)
+4. Labels <= 24 chars
+5. No orphan nodes
+6. No single-child groups
+7. No excessive fanout (>4 edges out)
+8. Self-loops converted to notes (sequences)
+9. Direction explicitly set
+10. Layout engine appropriate for complexity
+
+Fix any violations silently. Do not ask the user — just fix them.
+
+## Step 7: Validate Syntax
 
 ```bash
-d2 {output_file} {OUTPUT_DIR}/{basename}.{output_format}
+d2 validate {output_file}
 ```
 
-If `d2` is not found, tell the user to run `/d2-config` → option 8 (health check).
+Fix syntax errors using `$PLUGIN_DIR/references/guides/troubleshooting.md`.
 
-### Step 8: Offer design document (opt-in)
+## Step 8: Save and Deliver
 
-If the user's request mentions "document", "design doc", "design", or the generated diagram has 5+ components, offer:
-
-```
-This diagram could anchor a full design document.
-I can scaffold one around it — say "yes" to proceed.
+```bash
+mkdir -p {output_directory}
 ```
 
-### Code/Script Flow Requests
+Filename: `{type}-{short-description}-{YYYYMMDD}.d2`
+
+Render if `auto_render=true` or user asks:
+
+```bash
+d2 {output_file} {output_directory}/{basename}.svg
+```
+
+**Output:**
+
+```text
+{d2 code block}
+
+**What this shows:** {1-2 sentences describing the diagram}
+**Saved to:** {filename}
+**Elements:** {N} nodes, {M} connections
+**Layout:** {engine}, direction {direction}
+
+Want to adjust? I can change the detail level, scope, grouping, or type.
+```
+
+If split was required, list all generated files.
+
+## Code/Script Flow Requests
 
 If the user asks to "diagram the flow" of a file or script:
 
-1. Read the file and derive the flow from actual control paths.
-2. If the diagram type is still unclear, ask one short clarification.
-3. Execute as the appropriate specialist after confirming intent.
-
-## Examples
-
-**Input:** `/d2-diagram "order processing with payment gateway"`
-**Analysis:** Business workflow → Architecture
-**Executes:** `$PLUGIN_DIR/specialists/d2-architecture.md`
-
-**Input:** `/d2-diagram "API call from React frontend to FastAPI backend"`
-**Analysis:** Service interaction → Sequence
-**Executes:** `$PLUGIN_DIR/specialists/d2-sequence.md`
-
-**Input:** `/d2-diagram "user, order, product database schema"`
-**Analysis:** Database schema → ER
-**Executes:** `$PLUGIN_DIR/specialists/d2-er.md`
+1. Read the file and derive the flow from actual control paths
+2. Build the structural plan from the code structure
+3. Execute as the appropriate specialist

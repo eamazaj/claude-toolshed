@@ -1,228 +1,111 @@
 ---
-description: Generate architecture, infrastructure, and flow diagrams
-argument-hint: [description]
+description: Compositional patterns for architecture and infrastructure diagrams
 allowed-tools: Read, Bash, Write
 ---
 
 # D2 Architecture Specialist
 
-User request: "$ARGUMENTS"
+## Default Configuration
 
-## Task
+- **Layout engine:** `elk` (handles dense graphs with nested containers)
+- **Direction:** `right` for flows/pipelines, `down` for hierarchies
+- **Abstraction level:** container (default), deployment if infra-focused
 
-Generate a D2 diagram for system architecture, microservices, infrastructure, CI/CD pipelines, deployment topology, and general workflows.
+## Node Placement
 
-## Process
+| Position | Node types |
+|---|---|
+| Left edge | Users, external clients, entry points |
+| Center-left | Gateways, load balancers, API layers |
+| Center | Application services, workers |
+| Center-right | Databases, caches, queues |
+| Right edge | External APIs, third-party services |
+| Below main flow | Monitoring, logging, async workers, supporting infra |
 
-1. **Resolve Plugin Path**:
+## Grouping Defaults
 
-   ```bash
-   PLUGIN_DIR=$(find "$HOME/.claude/plugins/cache" -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   [ -z "$PLUGIN_DIR" ] && PLUGIN_DIR=$(find "$HOME" -maxdepth 8 -type d -name "d2" -path "*/skills/d2" 2>/dev/null | head -1)
-   ```
+- **Container diagrams:** group by layer (clients / services / data)
+- **Microservices:** group by domain (auth / orders / payments)
+- **Deployment:** group by environment or network boundary
 
-2. **Ensure D2 is installed**:
+## D2 Patterns
 
-   ```bash
-   bash "$PLUGIN_DIR/scripts/ensure-deps.sh"
-   ```
+**Shapes by node kind:**
 
-3. **Read Config**: If `.claude/d2.json` exists, read `theme_id`, `layout`, `sketch`, `output_directory`, `auto_validate`, `auto_render`. Fall back to defaults (theme_id: 0, layout: elk for architecture, output: ./diagrams).
+| Kind | Shape |
+|---|---|
+| Database, cache | `shape: cylinder` |
+| Message queue | `shape: queue` |
+| Cloud service | `shape: cloud` |
+| User, actor | `shape: person` |
+| Everything else | rectangle (default) |
 
-   **Layout recommendation:** Use `elk` for architecture diagrams — it handles complex graphs with many nodes better than `dagre`.
-
-4. **Identify Components**: Categorize into tiers:
-   - **External**: internet, users, DNS
-   - **Edge**: CDN, load balancers, API gateways
-   - **Application**: services, APIs, workers, jobs
-   - **Data**: databases, caches, queues, storage
-   - **Supporting**: monitoring, auth, config, secrets
-
-5. **Determine Structure**:
-   - **Microservices**: independent service boxes, grouped by domain
-   - **Layered**: tier-based containers (frontend / backend / data)
-   - **Pipeline/Flow**: left-to-right with `direction: right`
-   - **Deployment**: cloud provider as outer container, services nested inside
-
-6. **Generate Diagram**:
-
-   - Start with `vars` block built from config
-   - Use containers to group related components
-   - Use Unicode symbols: ☁️ cloud, 🌐 load balancer, ⚙️ service, 💾 database, ⚡ cache, 📨 queue, 🛡️ security, 👤 user
-   - Use `->` for directed connections, `<->` for bidirectional
-   - Label connections with protocol, port, or data flow description
-   - Use shapes: `cylinder` for databases/caches, `queue` for message queues
-   - Include error/failure paths where meaningful
-   - Quote node IDs with spaces
-
-   **Microservices template:**
-
-   ```d2
-   vars: {
-     d2-config: {
-       theme-id: {theme_id}
-       layout-engine: elk
-     }
-   }
-
-   "👤 Users" -> "🌐 Load Balancer": HTTPS
-
-   "🌐 Load Balancer" -> "⚙️ API Gateway"
-
-   services: {
-     label: Application Services
-     "⚙️ User Service"
-     "⚙️ Order Service"
-     "⚙️ Payment Service"
-   }
-
-   "⚙️ API Gateway" -> services."⚙️ User Service": REST
-   "⚙️ API Gateway" -> services."⚙️ Order Service": REST
-   "⚙️ API Gateway" -> services."⚙️ Payment Service": REST
-
-   data: {
-     label: Data Layer
-     "💾 PostgreSQL" {shape: cylinder}
-     "⚡ Redis" {shape: cylinder}
-     "📨 RabbitMQ" {shape: queue}
-   }
-
-   services."⚙️ User Service" -> data."💾 PostgreSQL"
-   services."⚙️ Order Service" -> data."💾 PostgreSQL"
-   services."⚙️ Order Service" -> data."📨 RabbitMQ"
-   services."⚙️ Payment Service" -> data."⚡ Redis"
-   ```
-
-   **Pipeline/flow template:**
-
-   ```d2
-   vars: {
-     d2-config: {
-       theme-id: {theme_id}
-       layout-engine: dagre
-     }
-   }
-
-   direction: right
-
-   source -> build -> test -> deploy -> monitor
-   ```
-
-   **Grid layout template** (Kubernetes, pod grids, deployment matrices):
-
-   ```d2
-   vars: {
-     d2-config: {
-       theme-id: {theme_id}
-       layout-engine: elk
-     }
-   }
-
-   cluster: {
-     grid-columns: 3
-     pod1: API Pod
-     pod2: API Pod
-     pod3: API Pod
-     pod4: Worker Pod
-     pod5: Worker Pod
-     pod6: Worker Pod
-   }
-
-   lb -> cluster.pod1
-   lb -> cluster.pod2
-   lb -> cluster.pod3
-   ```
-
-   **Reusable styles with `classes`** (when the diagram has many nodes of the same type):
-
-   ```d2
-   classes: {
-     service: {
-       shape: rectangle
-       style: {
-         border-radius: 4
-         shadow: true
-       }
-     }
-     database: {
-       shape: cylinder
-       style.fill: "#e8f4f8"
-     }
-     external: {
-       style: {
-         stroke-dash: 4
-         fill: "#f5f5f5"
-       }
-     }
-   }
-
-   stripe: Stripe API {
-     class: external
-   }
-   users_db: Users DB {
-     class: database
-   }
-   auth: Auth Service {
-     class: service
-   }
-   # Compose multiple classes
-   legacy: Legacy System {
-     class: [external; service]
-   }
-   ```
-
-7. **Validate**:
-
-   ```bash
-   d2 validate {output_file}
-   ```
-
-8. **Save**:
-
-   ```bash
-   mkdir -p {output_directory}
-   ```
-
-   Filename: `architecture-{short-description}-{YYYYMMDD}.d2`
-
-9. **Render** (if `auto_render=true` or user asks):
-
-   Render with both layout engines for comparison:
-
-   ```bash
-   d2 --layout dagre {output_file} {output_directory}/{basename}-dagre.svg
-   d2 --layout elk {output_file} {output_directory}/{basename}-elk.svg
-   ```
-
-   Present both:
-
-   ```
-   Rendered with both layout engines:
-   - {basename}-dagre.svg (faster, simpler layout)
-   - {basename}-elk.svg (better spacing for dense graphs)
-   Compare both and pick the one that reads best.
-   ```
-
-## Critical Rules
-
-- Use `elk` layout engine for complex architecture diagrams (many nodes)
-- Quote all node IDs containing spaces: `"API Gateway"` not `API Gateway`
-- For cross-container connections, use full dot-path: `container.node`
-- Containers don't need explicit declaration — just use `container: { ... }`
-- Use `direction: right` for pipeline flows and CI/CD diagrams
-
-## Output
+**Reusable styles with `classes`** (use when >4 nodes of same type):
 
 ```d2
-{complete diagram}
+classes: {
+  service: {
+    style.border-radius: 4
+    style.shadow: true
+  }
+  database: {
+    shape: cylinder
+  }
+  external: {
+    style.stroke-dash: 4
+  }
+}
+
+auth_svc: "Auth Service" { class: service }
+orders_db: "Orders DB" { class: database }
+stripe: "Stripe API" { class: external }
 ```
 
-**Saved to:** {filename}
-**Validation:** passed
-**Components:** {count} | **Connections:** {count}
+**Container grouping:**
 
-## Reference
+```d2
+services: {
+  label: Application Services
+  api: "API Gateway"
+  user_svc: "User Service"
+  order_svc: "Order Service"
+}
 
-- Troubleshooting: `$PLUGIN_DIR/references/guides/troubleshooting.md`
-- Common mistakes: `$PLUGIN_DIR/references/guides/common-mistakes.md`
-- Styling: `$PLUGIN_DIR/references/guides/styling-guide.md`
+data: {
+  label: Data Layer
+  pg: "PostgreSQL" { shape: cylinder }
+  redis: "Redis" { shape: cylinder }
+  rabbit: "RabbitMQ" { shape: queue }
+}
+
+services.api -> services.user_svc: REST
+services.api -> services.order_svc: REST
+services.order_svc -> data.pg
+services.order_svc -> data.rabbit: async
+```
+
+**Pipeline/flow (linear left-to-right):**
+
+```d2
+direction: right
+source -> build -> test -> deploy -> monitor
+```
+
+**Grid layout (replicas, pod arrays):**
+
+```d2
+cluster: {
+  grid-columns: 3
+  pod1: API Pod
+  pod2: API Pod
+  pod3: API Pod
+}
+```
+
+## Type-Specific Rules
+
+- Use `classes` block when diagram has >4 nodes of the same type
+- Use `grid-columns` for replica sets or pod arrays
+- Label connections with protocol or data description (REST, gRPC, async, SQL)
+- For cross-container connections use full dot-path: `container.node`
+- Quote all node IDs containing spaces (but prefer snake_case IDs)

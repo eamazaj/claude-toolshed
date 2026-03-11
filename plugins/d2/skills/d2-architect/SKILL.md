@@ -79,6 +79,18 @@ Based on what's found:
 
 Select **2-4 most relevant types**. Do not generate all 4 unless the codebase clearly warrants it.
 
+### Step 6b: Apply Composition Policies
+
+Read the global policies from `$PLUGIN_DIR/SKILL.md`. For each diagram to generate:
+
+1. Determine abstraction level (context/container/component/deployment)
+2. Choose grouping criterion (layer/domain/ownership/environment)
+3. Check estimated node count against visual budget (max 12 top-level, 7 per group)
+4. Select layout engine (dagre for <8 nodes, elk for >=8)
+5. Set direction explicitly (right for flows, down for hierarchies)
+
+If a diagram would exceed the visual budget, split into overview + detail.
+
 ### Step 7: Generate Each Diagram
 
 For each selected type, load the specialist:
@@ -87,7 +99,7 @@ For each selected type, load the specialist:
 cat "$PLUGIN_DIR/specialists/d2-{type}.md"
 ```
 
-Follow the specialist's **Process** section using the actual code found in Step 5 as input. Generate diagram content from real code, not hypothetical examples.
+Follow the specialist's compositional patterns using the actual code found in Step 5. The structural decisions from Step 6b (abstraction, grouping, direction, engine) govern the output. After generating, run the repair pass from `$PLUGIN_DIR/SKILL.md` before validating.
 
 ### Step 8: Validate
 
