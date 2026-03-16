@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2 (2026-03-16)
+
+### Other
+
+- improve environment variable loading logic for linked worktrees (729db1f)
+
+
 ## 1.1.1 (2026-03-10)
 
 ### Fixes

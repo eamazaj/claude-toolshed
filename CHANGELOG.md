@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.1 (2026-03-16)
+
+- **dev-setup** v1.1.2 — [improve environment variable loading logic for linked worktrees](plugins/dev-setup/CHANGELOG.md#112-2026-03-16)
+
+
 ## v1.5.0 (2026-03-11)
 
 - **d2** v1.2.0 — [redesign plugin as diagram composition system](plugins/d2/CHANGELOG.md#120-2026-03-11)
