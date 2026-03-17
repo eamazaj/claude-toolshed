@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.2 (2026-03-17)
+
+- **dev-setup** v1.1.3 — [dev-setup scripts for improved port management and worktree support](plugins/dev-setup/CHANGELOG.md#113-2026-03-17)
+
+
 ## v1.5.1 (2026-03-16)
 
 - **dev-setup** v1.1.2 — [improve environment variable loading logic for linked worktrees](plugins/dev-setup/CHANGELOG.md#112-2026-03-16)

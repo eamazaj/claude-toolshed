@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.3 (2026-03-17)
+
+### Other
+
+- dev-setup scripts for improved port management and worktree support (6edb817)
+
+
 ## 1.1.2 (2026-03-16)
 
 ### Other
