@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.0 (2026-03-20)
+
+- **paperclip** v0.2.0 — [add audit-paperclip skill plugin](plugins/paperclip/CHANGELOG.md#020-2026-03-20)
+
+
 ## v1.5.2 (2026-03-17)
 
 - **dev-setup** v1.1.3 — [dev-setup scripts for improved port management and worktree support](plugins/dev-setup/CHANGELOG.md#113-2026-03-17)
